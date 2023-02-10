@@ -2,6 +2,7 @@
   "name": "nft-sleep-minting",
   "version": "0.0.2",
   "description": "Forta Bot for NFT Sleep Minting",
+  "repository": "https://github.com/NethermindEth/nft-sleep-mint-forta-agent",
   "chainIds": [
     1,
     10,
