@@ -1,7 +1,16 @@
 {
-  "name": "forta-agent-starter",
-  "version": "0.0.1",
-  "description": "Forta Agent for NFT Sleep Minting",
+  "name": "nft-sleep-minting",
+  "version": "0.0.2",
+  "description": "Forta Bot for NFT Sleep Minting",
+  "chainIds": [
+    1,
+    10,
+    56,
+    137,
+    250,
+    42161,
+    43114
+  ],
   "scripts": {
     "build": "tsc",
     "start": "npm run start:dev",
@@ -16,19 +25,23 @@
     "disable": "forta-agent disable",
     "enable": "forta-agent enable",
     "keyfile": "forta-agent keyfile",
-    "test": "jest"
+    "test": "jest --detectOpenHandles",
+    "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {
-    "bignumber.js": "^9.0.1",
-    "ethers": "^5.5.2",
-    "forta-agent": "^0.0.32"
+    "forta-agent": "^0.1.17",
+    "node-fetch": "^2.6.8",
+    "dotenv": "^16.0.3"
   },
   "devDependencies": {
-    "@types/jest": "^27.0.1",
+    "@types/jest": "^27.5.1",
     "@types/nodemon": "^1.19.0",
-    "jest": "^27.0.6",
+    "@types/node-fetch": "^2.6.2",
+    "jest": "^27.5.1",
     "nodemon": "^2.0.8",
     "ts-jest": "^27.0.3",
-    "typescript": "^4.3.4"
+    "typescript": "^4.3.4",
+    "prettier": "^2.8.4",
+    "forta-agent-tools": "^3.2.5"
   }
 }
