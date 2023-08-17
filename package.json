@@ -3,7 +3,7 @@
   "displayName": "NFT Sleep Minting",
   "version": "0.0.2",
   "description": "Forta Bot for NFT Sleep Minting",
-  "longDescription": "The bot identifies and flag specific transaction patterns indicative of NFT Sleep Minting—a potentially deceptive practice in the realm of blockchain and NFT ecosystems.- NFT Sleep Minting involves an attacker minting an NFT directly to a prominent creator's wallet, granting them the ability to later reclaim or withdraw the NFT from the creator's wallet. This intricate maneuver creates the illusion that the creator themselves minted the NFT and subsequently transferred it to the attacker, allowing the attacker to claim ownership of an NFT apparently associated with a renowned artist and potentially sell it at a premium value. The bot's core purpose is to autonomously identify and highlight instances of this suspicious transaction behavior.",
+  "longDescription": "The bot identifies and flags specific transaction patterns indicative of NFT Sleep Minting—a potentially deceptive practice in the realm of blockchain and NFT ecosystems.- NFT Sleep Minting involves an attacker minting an NFT directly to a prominent creator's wallet, granting them the ability to later reclaim or withdraw the NFT from the creator's wallet. This intricate maneuver creates the illusion that the creator themselves minted the NFT and subsequently transferred it to the attacker, allowing the attacker to claim ownership of an NFT apparently associated with a renowned artist and potentially sell it at a premium value. The bot's core purpose is to autonomously identify and highlight instances of this suspicious transaction behavior.",
   "repository": "https://github.com/NethermindEth/nft-sleep-mint-forta-agent",
   "chainIds": [
     1,
