@@ -1,8 +1,7 @@
 import { PersistenceHelper } from "./persistence.helper";
 import { existsSync, writeFileSync, unlinkSync } from "fs";
-import fetch, { Response } from "node-fetch";
 
-jest.mock("node-fetch");
+global.fetch = jest.fn();
 
 const mockDbUrl = "databaseurl.com/";
 const mockJwt = {
@@ -37,7 +36,7 @@ const removePersistentState = () => {
 
 describe("Persistence Helper test suite", () => {
   let persistenceHelper: PersistenceHelper;
-  let mockFetch = jest.mocked(fetch, true);
+  let mockFetch = global.fetch as jest.Mock;
 
   beforeAll(() => {
     persistenceHelper = new PersistenceHelper(mockDbUrl);

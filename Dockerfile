@@ -1,5 +1,5 @@
 # Build stage: compile Typescript to Javascript
-FROM node:12-alpine AS builder
+FROM node:20-alpine AS builder
 WORKDIR /app
 COPY . .
 RUN npm ci
@@ -9,7 +9,7 @@ RUN npm run build
 # RUN javascript-obfuscator ./dist --output ./obfuscated --split-strings true --split-strings-chunk-length 3
 
 # Final stage: copy compiled Javascript from previous stage and install production dependencies
-FROM node:12-alpine
+FROM node:20-alpine
 ENV NODE_ENV=production
 LABEL "network.forta.settings.agent-logs.enable"="true"
 WORKDIR /app

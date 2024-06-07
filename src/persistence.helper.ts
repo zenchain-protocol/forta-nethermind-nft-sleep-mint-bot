@@ -1,7 +1,6 @@
 import * as dotenv from "dotenv";
 dotenv.config();
 import { fetchJwt } from "forta-agent";
-import fetch from "node-fetch";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 
 export class PersistenceHelper {
