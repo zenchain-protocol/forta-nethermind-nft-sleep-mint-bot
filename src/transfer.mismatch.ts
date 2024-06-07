@@ -1,20 +1,19 @@
 import "./agent";
 import {
   Finding,
-  HandleTransaction,
   TransactionEvent,
   FindingSeverity,
   FindingType,
   Label,
   EntityType,
-} from "forta-agent";
+} from "@fortanetwork/forta-bot";
 
-import { ZERO_ADDRESS, DEAD_ADDRESS, TRANSFER_EVENT } from "./constants";
+import { ZERO_ADDRESS, DEAD_ADDRESS, TRANSFER_EVENT, CHAIN_ID } from "./constants";
 import { counter } from "./agent";
 
 export let mints: Record<string, [string, string, number][]> = {};
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
+const handleTransaction = async (txEvent: TransactionEvent) => {
   const findings: Finding[] = [];
   const contractAddress: string = txEvent.to as string;
   const txnSender = txEvent.from.toLowerCase();
@@ -59,6 +58,9 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
               alertId: "SLEEPMINT-3",
               severity: FindingSeverity.High,
               type: FindingType.Suspicious,
+              source: {
+                chains: [{chainId: CHAIN_ID}]
+              },
               metadata: {
                 anomalyScore: anomalyScore.toFixed(2) === "0.00" ? anomalyScore.toString() : anomalyScore.toFixed(2),
               },
@@ -90,6 +92,9 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
               alertId: "SLEEPMINT-1",
               severity: FindingSeverity.Info,
               type: FindingType.Suspicious,
+              source: {
+                chains: [{chainId: CHAIN_ID}]
+              },
               metadata: {
                 anomalyScore: anomalyScore.toFixed(2) === "0.00" ? anomalyScore.toString() : anomalyScore.toFixed(2),
               },

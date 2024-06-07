@@ -1,17 +1,17 @@
 import {
   Finding,
-  HandleTransaction,
   TransactionEvent,
-  HandleBlock,
   BlockEvent,
-  ethers,
   Initialize,
-  getEthersProvider,
-} from "forta-agent";
+  scanEthereum,
+  ethers,
+  runHealthCheck,
+} from "@fortanetwork/forta-bot";
 
 import transferMismatch, { mints } from "./transfer.mismatch";
 import approveMismatch from "./approve.mismatch";
 import { PersistenceHelper } from "./persistence.helper";
+import { CHAIN_ID, EVM_RPC } from "./constants";
 
 const ONE_DAY = 24 * 60 * 60;
 const TIME_PERIOD_DAYS = 30;
@@ -32,16 +32,14 @@ export let counter: Record<string, number> = {
 };
 
 export const provideInitialize = (
-  provider: ethers.providers.Provider,
   persistenceHelper: PersistenceHelper
 ): Initialize => {
   return async () => {
-    chainId = (await provider.getNetwork()).chainId.toString();
-    counter = await persistenceHelper.load(DB_KEY.concat("-", chainId));
+    counter = await persistenceHelper.load(DB_KEY.concat("-", CHAIN_ID.toString()));
   };
 };
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
+const handleTransaction = async (txEvent: TransactionEvent, _provider: ethers.JsonRpcProvider) => {
   let findings: Finding[] = [];
 
   findings = (
@@ -54,37 +52,52 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
 let lastTimestamp = 0;
 
 export const provideHandleBlock =
-  (persistenceHelper: PersistenceHelper, mints: Record<string, [string, string, number][]>): HandleBlock =>
-  async (blockEvent: BlockEvent) => {
-    const { timestamp: blockTimestamp, number } = blockEvent.block;
+  (persistenceHelper: PersistenceHelper, mints: Record<string, [string, string, number][]>) =>
+    async (blockEvent: BlockEvent) => {
+      const { timestamp: blockTimestamp, number } = blockEvent.block;
 
-    if (number % 240 === 0) {
-      await persistenceHelper.persist(counter, DB_KEY.concat("-", chainId));
-      console.log(`Stored minters length on chainId ${Number(blockEvent.network)} is ${Object.keys(mints).length}`);
-    }
+      if (number % 240 === 0) {
+        await persistenceHelper.persist(counter, DB_KEY.concat("-", chainId));
+        console.log(`Stored minters length on chainId ${Number(blockEvent.network)} is ${Object.keys(mints).length}`);
+      }
 
-    if (blockTimestamp - lastTimestamp > TIME_PERIOD) {
-      for (const [key, values] of Object.entries(mints)) {
-        for (let i = 0; i < values.length; i++) {
-          const [, , timestamp] = values[i];
-          if (blockTimestamp - timestamp > TIME_PERIOD) {
-            values.splice(i, 1);
-            i--;
+      if (blockTimestamp - lastTimestamp > TIME_PERIOD) {
+        for (const [key, values] of Object.entries(mints)) {
+          for (let i = 0; i < values.length; i++) {
+            const [, , timestamp] = values[i];
+            if (blockTimestamp - timestamp > TIME_PERIOD) {
+              values.splice(i, 1);
+              i--;
+            }
+          }
+
+          if (mints[key].length === 0) {
+            delete mints[key];
           }
         }
-
-        if (mints[key].length === 0) {
-          delete mints[key];
-        }
       }
-    }
-    lastTimestamp = blockTimestamp;
+      lastTimestamp = blockTimestamp;
 
-    return [];
-  };
+      return [];
+    };
+
+async function main() {
+  const _ = provideInitialize(new PersistenceHelper(DATABASE_URL))
+  scanEthereum({
+    rpcUrl: EVM_RPC,
+    handleTransaction: handleTransaction,
+  })
+
+  runHealthCheck()
+}
+
+// only run main() method if this file is directly invoked (vs imported for testing)
+if (require.main === module) {
+  main();
+}
 
 export default {
-  initialize: provideInitialize(getEthersProvider(), new PersistenceHelper(DATABASE_URL)),
+  initialize: provideInitialize(new PersistenceHelper(DATABASE_URL)),
   handleTransaction,
   handleBlock: provideHandleBlock(new PersistenceHelper(DATABASE_URL), mints),
   resetLastTimestamp: () => {

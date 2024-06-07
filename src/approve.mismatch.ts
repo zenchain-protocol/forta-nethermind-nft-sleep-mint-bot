@@ -1,17 +1,16 @@
 import {
   Finding,
-  HandleTransaction,
   TransactionEvent,
   FindingSeverity,
   FindingType,
   Label,
   EntityType,
-} from "forta-agent";
+} from "@fortanetwork/forta-bot";
 
-import { APPROVE_EVENT, APPROVAL_FOR_ALL_EVENT, PERMIT_SIGS, TRANSFER_EVENT_TOPIC } from "./constants";
+import { APPROVE_EVENT, APPROVAL_FOR_ALL_EVENT, PERMIT_SIGS, TRANSFER_EVENT_TOPIC, CHAIN_ID } from "./constants";
 import { counter } from "./agent";
 
-const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) => {
+const handleTransaction = async (txEvent: TransactionEvent) => {
   const findings: Finding[] = [];
 
   const contractAddress: string = txEvent.to as string;
@@ -63,6 +62,9 @@ const handleTransaction: HandleTransaction = async (txEvent: TransactionEvent) =
             alertId: "SLEEPMINT-2",
             severity: FindingSeverity.Medium,
             type: FindingType.Suspicious,
+            source: {
+              chains: [{chainId: CHAIN_ID}]
+            },
             metadata: {
               anomalyScore: anomalyScore.toFixed(2) === "0.00" ? anomalyScore.toString() : anomalyScore.toFixed(2),
             },

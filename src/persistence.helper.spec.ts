@@ -20,8 +20,8 @@ const mockKey = "mock-test-key";
 
 // Mock the fetchJwt function of the forta-agent module
 const mockFetchJwt = jest.fn();
-jest.mock("forta-agent", () => {
-  const original = jest.requireActual("forta-agent");
+jest.mock("@fortanetwork/forta-bot", () => {
+  const original = jest.requireActual("@fortanetwork/forta-bot");
   return {
     ...original,
     fetchJwt: () => mockFetchJwt(),

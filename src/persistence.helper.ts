@@ -1,6 +1,6 @@
 import * as dotenv from "dotenv";
 dotenv.config();
-import { fetchJwt } from "forta-agent";
+import { fetchJwt } from "@fortanetwork/forta-bot";
 import { existsSync, readFileSync, writeFileSync } from "fs";
 
 export class PersistenceHelper {
