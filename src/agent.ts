@@ -3,25 +3,19 @@ import {
   TransactionEvent,
   BlockEvent,
   Initialize,
-  scanEthereum,
   ethers,
-  runHealthCheck,
 } from "@fortanetwork/forta-bot";
 
 import transferMismatch, { mints } from "./transfer.mismatch";
 import approveMismatch from "./approve.mismatch";
 import { PersistenceHelper } from "./persistence.helper";
-import { CHAIN_ID, EVM_RPC } from "./constants";
+import { CHAIN_ID, DATABASE_URL, DB_KEY } from "./constants";
 
 const ONE_DAY = 24 * 60 * 60;
 const TIME_PERIOD_DAYS = 30;
 const TIME_PERIOD = TIME_PERIOD_DAYS * ONE_DAY;
 
 let chainId: string;
-
-const DATABASE_URL = "https://research.forta.network/database/bot/";
-
-const DB_KEY = "nm-nft-sleep-minting-key";
 
 export let counter: Record<string, number> = {
   nftApprovals: 0,
@@ -80,21 +74,6 @@ export const provideHandleBlock =
 
       return [];
     };
-
-async function main() {
-  const _ = provideInitialize(new PersistenceHelper(DATABASE_URL))
-  scanEthereum({
-    rpcUrl: EVM_RPC,
-    handleTransaction: handleTransaction,
-  })
-
-  runHealthCheck()
-}
-
-// only run main() method if this file is directly invoked (vs imported for testing)
-if (require.main === module) {
-  main();
-}
 
 export default {
   initialize: provideInitialize(new PersistenceHelper(DATABASE_URL)),

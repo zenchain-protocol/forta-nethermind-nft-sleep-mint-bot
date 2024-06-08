@@ -10,5 +10,7 @@ export const TRANSFER_EVENT_TOPIC = "0xddf252ad1be2c89b69c2b068fc378daa952ba7f16
 export const APPROVE_EVENT = "event Approval(address indexed owner, address indexed approved, uint256 indexed tokenId)";
 export const APPROVAL_FOR_ALL_EVENT =
   "event ApprovalForAll(address indexed owner, address indexed operator, bool approved)";
-export const CHAIN_ID = 1
-export const EVM_RPC = "https://cloudflare-eth.com/";
+export const CHAIN_ID = 8408 // 1
+export const EVM_RPC = "http://alice:9944" //"https://cloudflare-eth.com"
+export const DATABASE_URL = process.env.REDIS_URL || "";
+export const DB_KEY = "nm-nft-sleep-minting-key";
