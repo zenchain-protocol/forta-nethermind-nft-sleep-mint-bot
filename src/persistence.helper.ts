@@ -1,62 +1,93 @@
 import * as dotenv from "dotenv";
+import axios from 'axios';
+import { fetchJwt } from "@fortanetwork/forta-bot";
 dotenv.config();
 
 export class PersistenceHelper {
-  databaseUrl: string;
-  fetch: any;
+  apiUrl: string;
 
-  constructor(dbUrl: string) {
-    this.databaseUrl = dbUrl;
+  constructor(apiUrl: string) {
+    this.apiUrl = apiUrl;
   }
 
   async persist(value: Record<string, number>, key: string) {
     const headers = {
-      Authorization: `Basic ${process.env.REDIS_BASIC_AUTH}`,
+      "Content-Type": "application/json",
+      "Accept": "application/json"
     };
+
+    // Add JWT for production environment
+    if (process.env.NODE_ENV === "production") {
+      const token = await fetchJwt({ key: "value" }, new Date(Date.now() + 5000));
+      // @ts-ignore
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
     try {
-      const response = await fetch(`${this.databaseUrl}/SET/${key}`, {
-        method: "PUT",
-        headers: headers,
-        body: JSON.stringify(value),
-      });
-      if (response.ok) {
-        console.log(`successfully persisted ${value} to database`);
-        return;
+      const response = await axios.post(`${this.apiUrl}/store`, {
+        key: key,
+        value: value
+      }, { headers });
+
+      if (response.status === 200) {
+        console.log(`Successfully persisted data to key: ${key}`);
+      } else {
+        console.error(
+          `Failed to persist data. Status: ${response.status}, Status Text: ${response.statusText}`
+        );
       }
-    } catch (e) {
-      console.log(`Failed to persist ${value} to database. Error: ${e}`);
+    } catch (e: any) {
+      console.error(`Failed to persist value to database. Error: ${e.message}`);
     }
   }
 
   async load(key: string): Promise<Record<string, number>> {
     const headers = {
-      Authorization: `Basic ${process.env.REDIS_BASIC_AUTH}`,
+      "Accept": "application/json"
     };
-    try {
-      const response = await fetch(`${this.databaseUrl}/GET/${key}`, { headers });
 
-      if (response.ok) {
-        let data: Record<string, number>;
-        data = (await response.json()) as Record<string, number>;
-        console.log(`successfully fetched ${data} from database`);
-        return data;
+    // Add JWT for production environment
+    if (process.env.NODE_ENV === "production") {
+      const token = await fetchJwt({ key: "value" }, new Date(Date.now() + 5000));
+      // @ts-ignore
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    try {
+      const response = await axios.get(`${this.apiUrl}/store`, {
+        params: { key: key },
+        headers: headers
+      });
+
+      if (response.status === 200) {
+        console.log(`Successfully fetched data from key: ${key}`);
+        return response.data.data;
+      } else if (response.status === 404) {
+        console.warn(`Key ${key} not found, returning default values.`);
+        return this.getDefaultValues();
       } else {
-        console.log(`${key} has no database entry`);
-        // If this is the first bot instance that is deployed,
-        // the database will not have data to return,
-        // thus return the default values of the counter to assign value to the variables
-        // necessary
-        return {
-          nftApprovals: 0,
-          nftTransfers: 0,
-          sleepMint1Alerts: 0,
-          sleepMint2Alerts: 0,
-          sleepMint3Alerts: 0,
-        };
+        console.error(
+          `Failed to fetch data. Key: ${key}, Status: ${response.status}, Status Text: ${response.statusText}`
+        );
+        return this.getDefaultValues();
       }
-    } catch (e) {
-      console.log(`Error in fetching data. Error: ${e}`);
+    } catch (e: any) {
+      if (e.response && e.response.status === 404) {
+        console.warn(`Key ${key} not found, returning default values.`);
+        return this.getDefaultValues();
+      }
+      console.error(`Error in fetching data. Error: ${e.message}`);
       throw e;
     }
+  }
+
+  getDefaultValues(): Record<string, number> {
+    return {
+      nftApprovals: 0,
+      nftTransfers: 0,
+      sleepMint1Alerts: 0,
+      sleepMint2Alerts: 0,
+      sleepMint3Alerts: 0,
+    };
   }
 }
