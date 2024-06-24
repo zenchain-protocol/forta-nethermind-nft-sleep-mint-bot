@@ -1,53 +1,19 @@
 import { PersistenceHelper } from "./persistence.helper";
-import { existsSync, writeFileSync, unlinkSync } from "fs";
+import axios from "axios";
 
-global.fetch = jest.fn();
+jest.mock("axios");
 
-const mockDbUrl = "databaseurl.com/";
-const mockJwt = {
-  token: {
-    iss: "issuer",
-    sub: "0x556f8BE42f76c01F960f32CB1936D2e0e0Eb3F4D",
-    aud: "recipient",
-    exp: 1660119443,
-    nbf: 1660119383,
-    iat: 1660119413,
-    jti: "qkd5cfad-1884-11ed-a5c9-02420a639308",
-    "bot-id": "0x13k387b37769ce24236c403e76fc30f01fa774176e1416c861yfe6c07dfef71f",
-  },
-};
+const mockDbUrl = "databaseurl.com";
 const mockKey = "mock-test-key";
-
-// Mock the fetchJwt function of the forta-agent module
-const mockFetchJwt = jest.fn();
-jest.mock("@fortanetwork/forta-bot", () => {
-  const original = jest.requireActual("@fortanetwork/forta-bot");
-  return {
-    ...original,
-    fetchJwt: () => mockFetchJwt(),
-  };
-});
-
-const removePersistentState = () => {
-  if (existsSync(mockKey)) {
-    unlinkSync(mockKey);
-  }
-};
 
 describe("Persistence Helper test suite", () => {
   let persistenceHelper: PersistenceHelper;
-  let mockFetch = global.fetch as jest.Mock;
 
   beforeAll(() => {
     persistenceHelper = new PersistenceHelper(mockDbUrl);
   });
 
   beforeEach(() => {
-    removePersistentState();
-    delete process.env.LOCAL_NODE;
-  });
-
-  afterEach(() => {
     jest.clearAllMocks();
   });
 
@@ -60,33 +26,23 @@ describe("Persistence Helper test suite", () => {
       sleepMint3Alerts: 0,
     };
 
-    const mockPostMethodResponse = { data: "4234" };
-    const mockFetchResponse: Response = {
-      ok: true,
-      json: jest.fn().mockResolvedValue(mockPostMethodResponse),
-    } as any as Response;
+    const axiosPostMock = axios.post as jest.MockedFunction<typeof axios.post>;
 
-    const mockEnv = {};
-    Object.assign(process.env, mockEnv);
+    axiosPostMock.mockResolvedValueOnce({ status: 200 });
 
-    mockFetchJwt.mockResolvedValueOnce(mockJwt);
-
-    mockFetch.mockResolvedValueOnce(Promise.resolve(mockFetchResponse));
-    const spy = jest.spyOn(console, "log").mockImplementation(() => {});
+    const spy = jest.spyOn(console, "log").mockImplementation(() => { });
     await persistenceHelper.persist(mockValue, mockKey);
 
-    expect(spy).toHaveBeenCalledWith("successfully persisted [object Object] to database");
-    expect(mockFetchJwt).toHaveBeenCalledTimes(1);
-    expect(mockFetch).toHaveBeenCalledTimes(1);
-    expect(mockFetch.mock.calls[0][0]).toEqual(`${mockDbUrl}${mockKey}`);
-    expect(mockFetch.mock.calls[0][1]!.method).toEqual("POST");
-    expect(mockFetch.mock.calls[0][1]!.headers).toEqual({
-      Authorization: `Bearer ${mockJwt}`,
-    });
-    expect(mockFetch.mock.calls[0][1]!.body).toEqual(JSON.stringify(mockValue));
+    expect(spy).toHaveBeenCalledWith(`Successfully persisted data to key: ${mockKey}`);
+    expect(axiosPostMock).toHaveBeenCalledTimes(1);
+    expect(axiosPostMock).toHaveBeenCalledWith(
+      `${mockDbUrl}/store`,
+      { key: mockKey, value: mockValue },
+      { headers: { "Content-Type": "application/json", "Accept": "application/json" } }
+    );
   });
 
-  it("should correctly store an object to a local file", async () => {
+  it("should fail to persist data and log an error", async () => {
     const mockValue: Record<string, number> = {
       nftApprovals: 0,
       nftTransfers: 0,
@@ -95,61 +51,72 @@ describe("Persistence Helper test suite", () => {
       sleepMint3Alerts: 0,
     };
 
-    const mockEnv = { LOCAL_NODE: 35 };
-    Object.assign(process.env, mockEnv);
+    const axiosPostMock = axios.post as jest.MockedFunction<typeof axios.post>;
 
+    axiosPostMock.mockRejectedValueOnce(new Error("Network Error"));
+
+    const spy = jest.spyOn(console, "error").mockImplementation(() => { });
     await persistenceHelper.persist(mockValue, mockKey);
 
-    expect(mockFetchJwt).not.toHaveBeenCalled();
-    expect(mockFetch).not.toHaveBeenCalled();
-
-    expect(existsSync("mock-test-key")).toBeDefined();
+    expect(spy).toHaveBeenCalledWith(`Failed to persist value to database. Error: Network Error`);
+    expect(axiosPostMock).toHaveBeenCalledTimes(1);
   });
 
-  it("should fail to load an object from the database, but return default counter", async () => {
-    const mockData: Record<string, number> = {
-      nftApprovals: 1210,
-      nftTransfers: 220,
-      sleepMint1Alerts: 310,
-      sleepMint2Alerts: 410,
-      sleepMint3Alerts: 40,
+  it("should correctly load an object from the database", async () => {
+    const mockData = {
+      data: {
+        data: {
+          nftApprovals: 1210,
+          nftTransfers: 220,
+          sleepMint1Alerts: 310,
+          sleepMint2Alerts: 410,
+          sleepMint3Alerts: 40,
+        }
+      },
+      status: 200
     };
 
-    const mockPostMethodResponse = mockData.toString();
-    const mockFetchResponse: Response = {
-      ok: false,
-      json: jest.fn().mockResolvedValue(mockPostMethodResponse),
-    } as any as Response;
+    const axiosGetMock = axios.get as jest.MockedFunction<typeof axios.get>;
 
-    const mockEnv = {};
-    Object.assign(process.env, mockEnv);
+    axiosGetMock.mockResolvedValueOnce(mockData);
 
-    mockFetchJwt.mockResolvedValueOnce(mockJwt);
-    mockFetch.mockResolvedValueOnce(mockFetchResponse);
+    const spy = jest.spyOn(console, "log").mockImplementation(() => { });
     const fetchedValue = await persistenceHelper.load(mockKey);
-    expect(fetchedValue).toStrictEqual({
-      nftApprovals: 0,
-      nftTransfers: 0,
-      sleepMint1Alerts: 0,
-      sleepMint2Alerts: 0,
-      sleepMint3Alerts: 0,
-    });
+
+    expect(spy).toHaveBeenCalledWith(`Successfully fetched data from key: ${mockKey}`);
+    expect(fetchedValue).toEqual(mockData.data.data);
+    expect(axiosGetMock).toHaveBeenCalledTimes(1);
+    expect(axiosGetMock).toHaveBeenCalledWith(`${mockDbUrl}/store`, { params: { key: mockKey }, headers: { "Accept": "application/json" } });
   });
 
-  it("should fail to load an object from a local file if it doesn't exist, but return default counter", async () => {
-    const mockEnv = { LOCAL_NODE: 121 };
-    Object.assign(process.env, mockEnv);
+  it("should fail to load data and return default values", async () => {
+    const axiosGetMock = axios.get as jest.MockedFunction<typeof axios.get>;
 
-    expect(mockFetchJwt).not.toHaveBeenCalled();
-    expect(mockFetch).not.toHaveBeenCalled();
+    axiosGetMock.mockRejectedValueOnce({ response: { status: 404 } });
 
+    const spy = jest.spyOn(console, "warn").mockImplementation(() => { });
     const fetchedValue = await persistenceHelper.load(mockKey);
-    expect(fetchedValue).toStrictEqual({
+
+    expect(spy).toHaveBeenCalledWith(`Key ${mockKey} not found, returning default values.`);
+    expect(fetchedValue).toEqual({
       nftApprovals: 0,
       nftTransfers: 0,
       sleepMint1Alerts: 0,
       sleepMint2Alerts: 0,
       sleepMint3Alerts: 0,
     });
+    expect(axiosGetMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("should log an error and throw when failing to load data due to a network error", async () => {
+    const axiosGetMock = axios.get as jest.MockedFunction<typeof axios.get>;
+
+    axiosGetMock.mockRejectedValueOnce(new Error("Network Error"));
+
+    const spy = jest.spyOn(console, "error").mockImplementation(() => { });
+
+    await expect(persistenceHelper.load(mockKey)).rejects.toThrow("Network Error");
+    expect(spy).toHaveBeenCalledWith(`Error in fetching data. Error: Network Error`);
+    expect(axiosGetMock).toHaveBeenCalledTimes(1);
   });
 });
