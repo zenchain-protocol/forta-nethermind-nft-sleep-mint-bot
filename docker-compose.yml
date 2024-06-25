@@ -1,11 +1,11 @@
 services:
   alice:
-    image: krisbit/zenchain-testnet
+    image: krisbit/zenchain-testnet #your-image-rpo/your-evm-node-image
     ports:
       - "9944:9944"
       - "9615:9615"
     command:
-      - "./usr/bin/zenchain-node"
+      - "./usr/bin/zenchain-node" #./user/bin/your-evm-node-binary
       - "--node-key=0000000000000000000000000000000000000000000000000000000000000001"
       - "--base-path=/tmp/alice"
       - "--chain=local"
@@ -18,11 +18,11 @@ services:
       - "--rpc-cors=all"
 
   bob:
-    image: krisbit/zenchain-testnet
+    image: krisbit/zenchain-testnet #your-image-rpo/your-evm-node-image
     ports:
       - "9945:9944"
     command:
-      - "./usr/bin/zenchain-node"
+      - "./usr/bin/zenchain-node" #./user/bin/your-evm-node-binary
       - "--node-key=0000000000000000000000000000000000000000000000000000000000000002"
       - "--base-path=/tmp/bob"
       - "--chain=local"
@@ -33,13 +33,13 @@ services:
       - "--rpc-cors=all"
       - "--unsafe-rpc-external"
       - "--log=sub-libp2p=trace"
-
+  
   dave:
-    image: krisbit/zenchain-testnet
+    image: krisbit/zenchain-testnet #your-image-rpo/your-evm-node-image
     ports:
       - "9946:9944"
     command:
-      - "./usr/bin/zenchain-node"
+      - "./usr/bin/zenchain-node" #./user/bin/your-evm-node-binary
       - "--node-key=0000000000000000000000000000000000000000000000000000000000000003"
       - "--base-path=/tmp/light"
       - "--chain=local"
@@ -52,25 +52,24 @@ services:
 
   redis:
     image: redis:latest
-    container_name: redis
+    command: redis-server --requirepass your_redis_password
     ports:
       - "6379:6379"
     volumes:
-      - redis-data:/data
+      - redis_data:/data
 
-  webdis:
-    image: nicolas/webdis:latest
-    command: /usr/local/bin/webdis /webdis/webdis.json
-    volumes:  # mount volume containing the config file
-      - ./webdis:/webdis
-    container_name: webdis
+  api:
+    build: https://github.com/zenchain-protocol/forta-storage.git
     ports:
-      - "7379:7379"
+      - "8080:8080"
+    environment:
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_PASSWORD: your_redis_password
+      NODE_ENV: development # or production, depending on what you want to test
+      NODE_PORT: 8080
     depends_on:
       - redis
-    environment:
-      - REDIS_HOST=redis
-      - REDIS_PORT=6379
 
   nft-sleep-mint-bot:
     build:
@@ -78,15 +77,16 @@ services:
       dockerfile: Dockerfile
     container_name: nft-sleep-mint-bot
     environment:
-      - NODE_ENV=production
-      - REDIS_URL=redis://redis:6379/
+      CHAIN_ID: 8408 # 1
+      EVM_RPC: http://alice:9944 # https://cloudflare-eth.com
+      NODE_ENV: development
     ports:
       - "3000:3000"
     depends_on:
       - alice
       - bob
       - dave
-      - webdis
+      - api
 
 volumes:
-  redis-data:
+  redis_data:

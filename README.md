@@ -106,16 +106,61 @@ The agent behavior can be verified with the following transactions:
 - SLEEPMINT-1 (Rinkeby): 0x3fdd4435c13672803490eb424ca93094b461ae754bd152714d5b5f58381ccd4b
 - SLEEPMINT-2 (Rinkeby): 0x53aa1bd7fa298fa1b96eeed2a4664db8934e27cd28ac0001a5bf5fa3b30c6360
 
-To test a transaction hash run the command: `npm run tx <TRANSACTION HASH>`. For example,
-
-```
-npm run tx 0x57f23fde8e4221174cfb1baf68a87858167fec228d9b32952532e40c367ef04e
-```
-
 ## Real Example Sleep Mint
 
 Here is the smart contract that sleep minted Beeple's "First 5000 Days" NFT: https://etherscan.io/address/0x5fbbacf00ef20193a301a5ba20acf04765fb6dac
 
-## Disclaimer
+## Running Locally
 
-_This agent code is being provided as is. No guarantee, representation or warranty is being made, express or implied, as to the safety or correctness of the agent code. The agent code has not been audited and as such there can be no assurance it will work as intended, and users may experience delays, failures, errors, omissions or loss of transmitted information. THE AGENT CODE CONTAINED HEREIN ARE FURNISHED AS IS, WHERE IS, WITH ALL FAULTS AND WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING ANY WARRANTY OF MERCHANTABILITY, NON- INFRINGEMENT OR FITNESS FOR ANY PARTICULAR PURPOSE. Further, use of any of this agent code may be restricted or prohibited under applicable law, including securities laws, and it is therefore strongly advised for you to contact a reputable attorney in any jurisdiction where this agent code may be accessible for any questions or concerns with respect thereto. Further, no information provided in this repo should be construed as investment advice or legal advice for any particular facts or circumstances, and is not meant to replace competent counsel. Nethermind is not liable for any use of the foregoing, and users should proceed with caution and use at their own risk._
+To run this bot locally, follow these steps:
+
+1. **Clone the repository and navigate to the project directory:**
+
+   ```bash
+   git clone git@github.com:zenchain-protocol/forta-nethermind-bots.git
+   cd forta-nethermind-bots/native-ice-phishing
+   ```
+
+2. **Ensure you have Node Version Manager (NVM) installed and use the correct Node.js version:**
+
+   ```bash
+   nvm use
+   ```
+
+3. **Run tests:**
+
+   Execute the tests locally using `npm`:
+
+   ```bash
+   npm tests
+   ```
+
+4. **Build and start the Docker containers:**
+
+   Build the Docker images with `docker-compose`.
+
+   ```bash
+   docker-compose build --build-arg INSTALL_DEV=true --build-arg NODE_ENV=development
+   ```
+
+   Start the bot in detached mode:
+
+   ```bash
+   docker-compose up -d nft-sleep-minting-agent
+   ```
+
+
+
+5. **Monitor logs and container status:**
+
+   To see logs from the bot, use:
+
+   ```bash
+   docker-compose logs -f nft-sleep-minting-agent
+   ```
+
+   Check the status of the containers:
+
+   ```bash
+   docker-compose ps
+   ```
