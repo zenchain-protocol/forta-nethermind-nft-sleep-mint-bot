@@ -16,5 +16,5 @@ export const APPROVAL_FOR_ALL_EVENT =
   "event ApprovalForAll(address indexed owner, address indexed operator, bool approved)";
 export const CHAIN_ID = Number(process.env.CHAIN_ID || 0);
 export const EVM_RPC = process.env.EVM_RPC || "";
-export const DATABASE_URL = process.env.REDIS_URL || "";
+export const DATABASE_URL = process.env.STORAGE_API_URL || "";
 export const DB_KEY = "nm-nft-sleep-minting-key";
