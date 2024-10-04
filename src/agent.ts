@@ -29,7 +29,7 @@ export const provideInitialize = (
   persistenceHelper: PersistenceHelper
 ): Initialize => {
   return async () => {
-    counter = await persistenceHelper.load(DB_KEY.concat("-", CHAIN_ID.toString()));
+    counter = await persistenceHelper.load(DB_KEY.concat("_", CHAIN_ID.toString()));
   };
 };
 
@@ -51,7 +51,7 @@ export const provideHandleBlock =
       const { timestamp: blockTimestamp, number } = blockEvent.block;
 
       if (number % 240 === 0) {
-        await persistenceHelper.persist(counter, DB_KEY.concat("-", chainId));
+        await persistenceHelper.persist(counter, DB_KEY.concat("_", chainId));
         console.log(`Stored minters length on chainId ${Number(blockEvent.network)} is ${Object.keys(mints).length}`);
       }
 
