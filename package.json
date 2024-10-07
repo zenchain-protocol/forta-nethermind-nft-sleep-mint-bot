@@ -12,14 +12,16 @@
     137,
     250,
     42161,
-    43114
+    43114,
+    8108,
+    8408
   ],
   "scripts": {
     "build": "tsc",
     "start": "node ./src/main.js",
     "start:dev": "nodemon --watch src --watch forta.config.json -e js,ts,json --exec \"node dist/main.js\"",
     "start:prod": "npx forta-bot run --prod",
-    "tx": "npm run build && npx forta-bot run --chainId 1 --tx",
+    "tx": "npm run build && npx forta-bot run --chainId 8408 --tx",
     "block": "npm run build && npx forta-bot run --block",
     "range": "npm run build && npx forta-bot run --range",
     "file": "npm run build && npx forta-bot run --file",

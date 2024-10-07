@@ -3,6 +3,19 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 COPY . .
 RUN npm ci
+
+# Define build-time arguments
+ARG CHAIN_ID
+ARG EVM_RPC
+ARG STORAGE_API_URL
+ARG NODE_ENV
+
+# Set environment variables in the container
+ENV CHAIN_ID=$CHAIN_ID
+ENV EVM_RPC=$EVM_RPC
+ENV STORAGE_API_URL=$STORAGE_API_URL
+ENV NODE_ENV=$NODE_ENV
+
 RUN npm run build
 # obfuscate compiled Javascript (optional)
 # RUN npm install -g javascript-obfuscator
