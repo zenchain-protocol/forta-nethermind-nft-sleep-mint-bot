@@ -1,6 +1,5 @@
 node_modules
 dist
-forta.config.json
 **/.DS_Store
 .vscode
 **/node_modules/
@@ -11,3 +10,4 @@ forta.config.json
 **/artifacts/
 publish.log
 webdis.json
+forta.config.json

@@ -1,3 +1,5 @@
 {
-    "jsonRpcUrl": "YOUR_RPC_ENDPOINT_HERE"
+    "jsonRpcUrl": "https://zenchain-testnet.api.onfinality.io/public",
+    "botId":"0xdc585890bca26d3fce25dc7b85d018eda4042e76c43375890091c8c881964dde",
+    "fortaApiKey": ""
 }
