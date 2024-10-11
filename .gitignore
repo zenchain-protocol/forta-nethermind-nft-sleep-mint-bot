@@ -10,3 +10,4 @@ dist
 **/artifacts/
 publish.log
 webdis.json
+forta.config.json
