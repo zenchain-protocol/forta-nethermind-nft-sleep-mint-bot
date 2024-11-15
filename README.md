@@ -132,7 +132,7 @@ To run this bot locally, follow these steps:
    Execute the tests locally using `npm`:
 
    ```bash
-   npm tests
+   npm test
    ```
 
 4. **Build and start the Docker containers:**
